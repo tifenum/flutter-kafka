@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "1055019767750",
+    "firebase_url": "https://safa-pfe-project-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "safa-pfe-project",
+    "storage_bucket": "safa-pfe-project.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1055019767750:android:6d92e038f1a9305b6c04c7",
+        "android_client_info": {
+          "package_name": "com.example.pfe_proj_safa"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBEX40n8G0TiGBUJMDqKZIB4xWrdKZ9gZA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
