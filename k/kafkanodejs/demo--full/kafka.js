@@ -143,22 +143,44 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
+// var dataHandler = function (messageSet, topic, partition) {
+//   messageSet.forEach(async function (m) {
+//       var message = JSON.parse(m.message.value.toString('utf8'));
+//       var power = parseFloat(message.DevEUI_uplink.TxPower);
+//       var courant = parseFloat(message.DevEUI_uplink.FCntUp);
+//       var energie = parseFloat(message.DevEUI_uplink.FCntDn);
+//       var timestamp = new Date();
+
+//       console.log("topic ", topic, "partition ", partition, "m.offset ", m.offset, "power ", power, "courant", courant, "energie ", energie, "timestamp", timestamp);
+
+//       io.emit('message', { power: power, courant: courant, energie: energie});
+//       await insertData({ power: power, courant: courant, energie: energie, timestamp: timestamp });
+
+//   });
+// };
 var dataHandler = function (messageSet, topic, partition) {
   messageSet.forEach(async function (m) {
-      var message = JSON.parse(m.message.value.toString('utf8'));
-      var power = parseFloat(message.DevEUI_uplink.TxPower);
-      var courant = parseFloat(message.DevEUI_uplink.FCntUp);
-      var energie = parseFloat(message.DevEUI_uplink.FCntDn);
+    var message = JSON.parse(m.message.value.toString('utf8'));
+
+    if (message.DevEUI_uplink.DevEUI === '5555555555555555') {
+      var payloadHex = message.DevEUI_uplink.payload_hex;
+
+      var buffer = Buffer.from(payloadHex, 'hex');
+
+
+      var power = buffer.readFloatBE(0); // First 4 bytes
+      var courant = buffer.readFloatBE(4); // Next 4 bytes
+      var energie = buffer.readFloatBE(8); // Next 4 bytes
+      console.log("power", power, "courant", courant, "energie", energie);
       var timestamp = new Date();
 
       console.log("topic ", topic, "partition ", partition, "m.offset ", m.offset, "power ", power, "courant", courant, "energie ", energie, "timestamp", timestamp);
 
-      io.emit('message', { power: power, courant: courant, energie: energie});
+      io.emit('message', { power: power, courant: courant, energie: energie });
       await insertData({ power: power, courant: courant, energie: energie, timestamp: timestamp });
-
+    }
   });
 };
-
 return consumer.init().then(function () {
 
 var v1 = consumer.subscribe('AS.Treetronix.v1', dataHandler);
