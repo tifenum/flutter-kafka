@@ -143,44 +143,40 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// var dataHandler = function (messageSet, topic, partition) {
-//   messageSet.forEach(async function (m) {
-//       var message = JSON.parse(m.message.value.toString('utf8'));
-//       var power = parseFloat(message.DevEUI_uplink.TxPower);
-//       var courant = parseFloat(message.DevEUI_uplink.FCntUp);
-//       var energie = parseFloat(message.DevEUI_uplink.FCntDn);
-//       var timestamp = new Date();
-
-//       console.log("topic ", topic, "partition ", partition, "m.offset ", m.offset, "power ", power, "courant", courant, "energie ", energie, "timestamp", timestamp);
-
-//       io.emit('message', { power: power, courant: courant, energie: energie});
-//       await insertData({ power: power, courant: courant, energie: energie, timestamp: timestamp });
-
-//   });
-// };
 var dataHandler = function (messageSet, topic, partition) {
   messageSet.forEach(async function (m) {
     var message = JSON.parse(m.message.value.toString('utf8'));
 
     if (message.DevEUI_uplink.DevEUI === '5555555555555555') {
       var payloadHex = message.DevEUI_uplink.payload_hex;
+      console.log('Received payloadHex:', payloadHex);
 
       var buffer = Buffer.from(payloadHex, 'hex');
+      console.log('Buffer length:', buffer.length);
 
+      if (buffer.length >= 12) {
+        try {
+          var current = buffer.readFloatLE(0).toFixed(2); 
+          var power = buffer.readFloatLE(4).toFixed(2); 
+          var energy = buffer.readFloatLE(8).toFixed(2); 
+          console.log("current", current, "power", power, "energy", energy);
+          var timestamp = new Date();
 
-      var power = buffer.readFloatBE(0); // First 4 bytes
-      var courant = buffer.readFloatBE(4); // Next 4 bytes
-      var energie = buffer.readFloatBE(8); // Next 4 bytes
-      console.log("power", power, "courant", courant, "energie", energie);
-      var timestamp = new Date();
+          console.log("topic ", topic, "partition ", partition, "m.offset ", m.offset, "current ", current, "power ", power, "energy ", energy, "timestamp", timestamp);
 
-      console.log("topic ", topic, "partition ", partition, "m.offset ", m.offset, "power ", power, "courant", courant, "energie ", energie, "timestamp", timestamp);
-
-      io.emit('message', { power: power, courant: courant, energie: energie });
-      await insertData({ power: power, courant: courant, energie: energie, timestamp: timestamp });
+          io.emit('message', { current: current, power: power, energy: energy });
+          await insertData({ current: current, power: power, energy: energy, timestamp: timestamp });
+        } catch (err) {
+          console.error('Error reading buffer:', err);
+        }
+      } else {
+        console.error('Buffer length insufficient:', buffer.length);
+      }
     }
   });
 };
+
+
 return consumer.init().then(function () {
 
 var v1 = consumer.subscribe('AS.Treetronix.v1', dataHandler);

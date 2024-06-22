@@ -50,7 +50,7 @@ Future<void> fetchData() async {
       if (currentId != id || id.isEmpty) { 
         setState(() {
           id = currentId;
-          e += _parseDynamicToDouble(data['energie']);
+          e = _parseDynamicToDouble(data['energie']);
           c += _parseDynamicToDouble(data['courant']);
           p += _parseDynamicToDouble(data['power']);
           energie = formatDouble(e);
